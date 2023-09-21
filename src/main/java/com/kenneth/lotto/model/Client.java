@@ -1,7 +1,6 @@
 package com.kenneth.lotto.model;
 
 import jakarta.persistence.*;
-import org.springframework.boot.autoconfigure.web.WebProperties;
 
 import java.util.*;
 
@@ -18,6 +17,7 @@ public class Client {
     @Column(name="client_name")
     private String name;
     @Column(name = "client_picks")
+    @Convert(converter =  IntArrToJsonConverter.class)
     private int[] picks;
     public Client(){}
     public Client(String name,int[] picks) throws IllegalArgumentException{
