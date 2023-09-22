@@ -1,19 +1,20 @@
 package com.kenneth.lotto.model;
 
-import jakarta.persistence.*;
-
 import java.util.*;
+
+import jakarta.persistence.*;
 
 @Entity
 @Table
 public class Client {
-    private static final int maxPicks = 6;
-    private static final int minPick = 1;
-    private static final int maxPick = 45;
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    @Column(name="client_picks_id")
+    public static final int maxPicks = 6;
+    public static final int minPick = 1;
+    public static final int maxPick = 45;
+
+    @Column(name="client_picks_id",columnDefinition = "SERIAL")
     private int id;
+
+    @Id
     @Column(name="client_name")
     private String name;
     @Column(name = "client_picks")
@@ -33,6 +34,10 @@ public class Client {
             throw new IllegalArgumentException("Client name can't be empty.");
         this.name = name;
         this.picks = picks;
+    }
+    @Override
+    public boolean equals(Object o){
+        return name.equals( ((Client)o).name );
     }
 
     public int getId() {
