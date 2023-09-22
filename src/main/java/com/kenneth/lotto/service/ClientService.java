@@ -9,29 +9,9 @@ import com.kenneth.lotto.model.*;
 import com.kenneth.lotto.ServletInitializer;
 
 @Service
-public class ClientService {
-    private final static int fileSize = 1024;
-    private final Map<String, int[]> entries = new HashMap<>();
-
+public class ClientService implements LottoService {
+    private static final Map<String, int[]> entries = new HashMap<>();
     public ClientService() {
-    }
-
-    private void validateInput(String csvInput) {
-        String[] lines = csvInput.split(System.lineSeparator());
-        for (int i = 0; i < lines.length; ++i) {
-            String[] tokens = lines[i].split(",", -1);
-            if (tokens.length < 7)
-                if (!tokens[tokens.length - 1].equals("LP"))
-                    continue;
-            String name = tokens[0];
-            if (entries.containsKey(name))
-                continue;
-            int[] values = toIntArray(Arrays.copyOfRange(
-                    tokens, 1, tokens.length));
-            if (values == null)
-                continue;
-            entries.put(name, values);
-        }
     }
 
     private int[] toIntArray(String[] tokens) {
@@ -76,7 +56,27 @@ public class ClientService {
         return buffer;
     }
 
-    public boolean updateClients(String csvInput) {
+    @Override
+    public void validateInput(String csvInput) {
+        String[] lines = csvInput.split(System.lineSeparator());
+        for (int i = 0; i < lines.length; ++i) {
+            String[] tokens = lines[i].split(",", -1);
+            if (tokens.length < 7)
+                if (!tokens[tokens.length - 1].equals("LP"))
+                    continue;
+            String name = tokens[0];
+            if (entries.containsKey(name))
+                continue;
+            int[] values = toIntArray(Arrays.copyOfRange(
+                    tokens, 1, tokens.length));
+            if (values == null)
+                continue;
+            entries.put(name, values);
+        }
+    }
+
+    @Override
+    public boolean updateEntriesFromString(String csvInput) {
         boolean result = false;
         ServletInitializer.em.getTransaction().begin();
         validateInput(csvInput);
@@ -99,18 +99,19 @@ public class ClientService {
         return result;
     }
 
-    public boolean updateClientsFromFile(String fileUri) {
+    @Override
+    public boolean updateEntriesFromFile(String fileUri) {
         char[] buffer = null;
+        boolean result = false;
         try {
             InputStream fis = new FileInputStream(fileUri);
             buffer = getCharsFromStream(fis);
-        } catch (IOException ioex) {
-            return false;
+        } catch (IOException ignored) {
         } finally {
             if (buffer != null) {
-                updateClients(String.valueOf(buffer));
+                result = updateEntriesFromString(String.valueOf(buffer));
             }
         }
-        return true;
+        return result;
     }
 }

@@ -6,10 +6,7 @@ import jakarta.persistence.*;
 
 @Entity
 @Table
-public class Client {
-    public static final int maxPicks = 6;
-    public static final int minPick = 1;
-    public static final int maxPick = 45;
+public class Client implements LottoModel {
 
     @Column(name="client_picks_id",columnDefinition = "SERIAL")
     private int id;
@@ -40,26 +37,32 @@ public class Client {
         return name.equals( ((Client)o).name );
     }
 
+    @Override
     public int getId() {
         return id;
     }
 
+    @Override
     public void setId(int id) {
         this.id = id;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public void setName(String name) {
         this.name = name;
     }
 
+    @Override
     public int[] getPicks() {
         return Arrays.copyOf(picks,maxPicks);
     }
 
+    @Override
     public void setPicks(int[] picks) {
         this.picks = picks;
     }
