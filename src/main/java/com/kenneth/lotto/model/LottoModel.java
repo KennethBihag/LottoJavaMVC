@@ -14,6 +14,7 @@ public interface LottoModel {
     void setName(String name);
 
     int[] getPicks();
+    String getPicksString();
 
     void setPicks(int[] picks);
 }

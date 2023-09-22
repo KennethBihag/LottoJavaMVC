@@ -3,6 +3,9 @@ package com.kenneth.lotto.service;
 import java.io.*;
 import java.util.*;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
+import jakarta.persistence.Query;
 import org.springframework.stereotype.Service;
 
 import com.kenneth.lotto.model.*;
@@ -10,6 +13,7 @@ import com.kenneth.lotto.ServletInitializer;
 
 @Service
 public class ClientService implements LottoService {
+    private static final EntityManager em = ServletInitializer.em;
     private static final Map<String, int[]> entries = new HashMap<>();
     public ClientService() {
     }
@@ -78,24 +82,31 @@ public class ClientService implements LottoService {
     @Override
     public boolean updateEntriesFromString(String csvInput) {
         boolean result = false;
-        ServletInitializer.em.getTransaction().begin();
+        em.getTransaction().begin();
         validateInput(csvInput);
         Collection<String> toRemove = new ArrayList<>();
         Iterator<Map.Entry<String, int[]>> itr = entries.entrySet().iterator();
         while (itr.hasNext()) {
             var e = itr.next();
             try {
-                Client client = new Client(e.getKey(), e.getValue());
-                Client found = ServletInitializer.em.find(Client.class, client.getName());
+                Client client = new Client(e.getKey(),e.getValue());
+                String jpql = String.format(
+                        "SELECT c FROM Client c WHERE c.name = '%s'",
+                        e.getKey());
+                Query query = em.createQuery(jpql, Client.class);
+                Client found = null;
+                try{
+                    found = (Client)query.getSingleResult();
+                }catch (NoResultException ignored){}
                 if (found == null) {
                     result = true;
-                    ServletInitializer.em.persist(client);
+                    em.persist(client);
                 }
             } catch (IllegalArgumentException ignored) {
                 itr.remove();
             }
         }
-        ServletInitializer.em.getTransaction().commit();
+        em.getTransaction().commit();
         return result;
     }
 
@@ -113,5 +124,11 @@ public class ClientService implements LottoService {
             }
         }
         return result;
+    }
+    @Override
+    public List<Client> getLottoModels(){
+        String jpql = "SELECT c FROM Client c";
+        Query query = em.createQuery(jpql, Client.class);
+        return (List<Client>)query.getResultList();
     }
 }
