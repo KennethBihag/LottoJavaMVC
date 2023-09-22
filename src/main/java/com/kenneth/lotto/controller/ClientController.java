@@ -18,7 +18,6 @@ public class ClientController implements LottoController {
     @Autowired
     private ClientService clientService;
 
-    @Override
     public ResponseEntity<String> updateEntriesFromString(String csvContent) {
         if(csvContent == null || csvContent.isBlank())
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
@@ -31,7 +30,6 @@ public class ClientController implements LottoController {
         return ResponseEntity.ok("Succesful update.");
     }
 
-    @Override
     @PostMapping("/client")
     public ResponseEntity<String> updateEntriesFromFile(
             @RequestParam(defaultValue = "") String entries, @RequestBody(required = false) String csvContent){

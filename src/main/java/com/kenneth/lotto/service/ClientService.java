@@ -3,28 +3,26 @@ package com.kenneth.lotto.service;
 import java.io.*;
 import java.util.*;
 
-import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.Query;
 import org.springframework.stereotype.Service;
 
 import com.kenneth.lotto.model.*;
-import com.kenneth.lotto.ServletInitializer;
 
 @Service
 public class ClientService implements LottoService {
-    private static final EntityManager em = ServletInitializer.em;
+    private static final int fileSize = 1024;
     private static final Map<String, int[]> entries = new HashMap<>();
     public ClientService() {
     }
 
     private int[] toIntArray(String[] tokens) {
-        if (tokens.length != Client.maxPicks)
+        if (tokens.length != LottoModel.maxPicks)
             return null;
-        int[] result = new int[Client.maxPicks];
+        int[] result = new int[LottoModel.maxPicks];
         boolean randomize = false;
         int i = 0;
-        for (; i < Client.maxPicks; ++i) {
+        for (; i < tokens.length; ++i) {
             if (!tokens[i].equals("LP")) {
                 try {
                     result[i] = Integer.parseInt(tokens[i]);
@@ -37,10 +35,7 @@ public class ClientService implements LottoService {
             }
         }
         if (randomize)
-            for (; i < Client.maxPicks; ++i) {
-                Random random = new Random();
-                result[i] = random.nextInt(45) + 1;
-            }
+            randomize(result,i);
         return result;
     }
 
@@ -60,7 +55,6 @@ public class ClientService implements LottoService {
         return buffer;
     }
 
-    @Override
     public void validateInput(String csvInput) {
         String[] lines = csvInput.split(System.lineSeparator());
         for (int i = 0; i < lines.length; ++i) {
@@ -79,7 +73,6 @@ public class ClientService implements LottoService {
         }
     }
 
-    @Override
     public boolean updateEntriesFromString(String csvInput) {
         boolean result = false;
         em.getTransaction().begin();
@@ -110,7 +103,6 @@ public class ClientService implements LottoService {
         return result;
     }
 
-    @Override
     public boolean updateEntriesFromFile(String fileUri) {
         char[] buffer = null;
         boolean result = false;

@@ -7,14 +7,15 @@ import jakarta.persistence.*;
 @Entity
 @Table
 public class Client implements LottoModel {
+    private static final int minPick = 1, maxPick = 45;
     @Id
     @Column(name="client_picks_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(name="client_name")
+    @Column(name="client_name",columnDefinition = "VARCHAR(45)")
     private String name;
-    @Column(name = "client_picks")
+    @Column(name = "client_picks",columnDefinition = "VARCHAR(45)")
     @Convert(converter =  IntArrToJsonConverter.class)
     private int[] picks;
     public Client(){}
@@ -36,6 +37,13 @@ public class Client implements LottoModel {
     public boolean equals(Object o){
         return id == ((Client)o).id;
     }
+    @Override
+    public String toString(){
+        return String.format(
+                "%s with ID %d picked %s",
+                name,id,getPicksString()
+        );
+    }
 
     @Override
     public int getId() {
@@ -47,12 +55,10 @@ public class Client implements LottoModel {
         this.id = id;
     }
 
-    @Override
     public String getName() {
         return name;
     }
 
-    @Override
     public void setName(String name) {
         this.name = name;
     }
@@ -65,22 +71,5 @@ public class Client implements LottoModel {
     @Override
     public void setPicks(int[] picks) {
         this.picks = picks;
-    }
-    @Override
-    public String toString(){
-        return String.format(
-                "%s with ID %d picked %s",
-                name,id,getPicksString()
-        );
-    }
-    @Override
-    public String getPicksString(){
-        StringBuilder sb = new StringBuilder();
-        for(int i=0;i<maxPicks;++i) {
-            sb.append(picks[i]);
-            if(i<maxPicks-1)
-                sb.append('-');
-        }
-        return sb.toString();
     }
 }

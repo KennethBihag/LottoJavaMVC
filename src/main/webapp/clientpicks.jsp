@@ -19,9 +19,9 @@
         <tbody>
         <%
 
-            List<? extends LottoModel> allEntries =
-                    (List<? extends LottoModel>)request.getAttribute("allEntries");
-            for(LottoModel c : allEntries){
+            List<Client> allEntries =
+                    (List<Client>)request.getAttribute("allEntries");
+            for(Client c : allEntries){
                 String row = String.format("<tr><td>%s</td><td>%d</td><td>%s</td></tr>",
                         c.getName(),
                         c.getId(),
