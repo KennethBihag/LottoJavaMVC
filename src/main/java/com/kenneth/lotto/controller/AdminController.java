@@ -1,7 +1,5 @@
 package com.kenneth.lotto.controller;
 
-import com.kenneth.lotto.ServletInitializer;
-import com.kenneth.lotto.model.LottoModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -11,6 +9,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.kenneth.lotto.model.WinningNumber;
 import com.kenneth.lotto.service.AdminService;
+import com.kenneth.lotto.model.LottoModel;
+import static com.kenneth.lotto.repository.LottoRepo.*;
 
 @Controller
 public class AdminController implements LottoController{
@@ -23,9 +23,9 @@ public class AdminController implements LottoController{
         adminService.randomize(winningNums,0);
         wn.setPicks(winningNums);
         wn.setPrizePool(prizePool);
-        ServletInitializer.em.getTransaction().begin();
-        ServletInitializer.em.persist(wn);
-        ServletInitializer.em.getTransaction().commit();
+        em.getTransaction().begin();
+        em.persist(wn);
+        em.getTransaction().commit();
         return ResponseEntity.ok().body("OKAY");
     }
     @Override

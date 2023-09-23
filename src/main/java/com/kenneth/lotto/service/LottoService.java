@@ -3,13 +3,16 @@ package com.kenneth.lotto.service;
 import java.util.List;
 import java.util.Random;
 
-import com.kenneth.lotto.ServletInitializer;
-import com.kenneth.lotto.model.Client;
 import com.kenneth.lotto.model.LottoModel;
-import jakarta.persistence.EntityManager;
 
 public interface LottoService {
-    EntityManager em = ServletInitializer.em;
+    public enum Prize {
+        NONE(0),THIRD(3),SECOND(4),FIRST(5),GRAND(6);
+        private int n;
+        Prize(int n){
+            this.n = n;
+        }
+    }
     List<? extends LottoModel> getLottoModels();
     default void randomize(int[] input,int start){
         for (int i=start; i < input.length; ++i) {

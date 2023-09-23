@@ -8,6 +8,7 @@ import jakarta.persistence.Query;
 import org.springframework.stereotype.Service;
 
 import com.kenneth.lotto.model.*;
+import static com.kenneth.lotto.repository.LottoRepo.*;
 
 @Service
 public class ClientService implements LottoService {
