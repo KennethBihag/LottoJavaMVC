@@ -1,17 +1,21 @@
 package com.kenneth.lotto.repository;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import com.kenneth.lotto.service.LottoService;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.Query;
 import org.springframework.stereotype.Repository;
 
 import com.kenneth.lotto.model.*;
+import com.kenneth.lotto.service.LottoService.Prize;
 
 @Repository
 public class LottoRepoImpl implements LottoRepo{
     private final List<Client> clientCache = new ArrayList<>();
     private final List<WinningNumber> winningCache = new ArrayList<>();
+    private final List<Winner> winnerCache = new ArrayList<>();
 
     @Override
     public List<? extends LottoModel> getAllObjects(Class<? extends LottoModel> modelClass){
@@ -135,14 +139,8 @@ public class LottoRepoImpl implements LottoRepo{
         }else if (modelClass==WinningNumber.class){
             int prize = (int)args[0];
             int[] picks = (int[])args[1];
-            existing = new WinningNumber(prize,picks);
-            try{
-                et.begin();
-                em.persist(existing);
-                et.commit();
-                winningCache.add((WinningNumber) existing);
-                return true;
-            }catch(Exception ignored){}
+            existing = createWinningNumber(prize,picks);
+            if(existing != null) return true;
         }
         return false;
     }
@@ -157,5 +155,33 @@ public class LottoRepoImpl implements LottoRepo{
         }catch (Exception e){
             return null;
         }
+    }
+    private WinningNumber createWinningNumber(int prizePool,int[] picks){
+        WinningNumber wn = new WinningNumber(prizePool,picks);
+        AtomicInteger sharedPrize = new AtomicInteger(0);
+        Map.Entry<WinningNumber,Map<Client, Prize>> winners =
+                getWinnersFor1Picks(wn,clientCache,sharedPrize);
+        List<Winner> tempWinners = new ArrayList<>();
+        for(Map.Entry<Client,Prize> e : winners.getValue().entrySet()){
+            Prize cPrizeType = e.getValue();
+            int cPrize = switch (cPrizeType){
+                case THIRD -> 20;
+                case SECOND -> 500;
+                case FIRST -> 20000;
+                case GRAND -> sharedPrize.get();
+                default -> -1;
+            };
+            tempWinners.add(new Winner(e.getKey(),wn,cPrize));
+        }
+        try{
+            et.begin();
+            em.persist(wn);
+            et.commit();
+            winningCache.add((WinningNumber) wn);
+            winnerCache.addAll(tempWinners);
+            return wn;
+        }catch(Exception ignored){}
+
+        return null;
     }
 }

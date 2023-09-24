@@ -5,6 +5,10 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -24,6 +28,8 @@ class LottoApplicationTests {
     private static AdminService adminService;
     private static ClientService clientService;
     private static Path csvInputPath;
+    private static final List<Client> clients = new ArrayList<>();
+    private static final List<WinningNumber> winnings = new ArrayList<>();
 
     @BeforeAll
     private static void setup(){
@@ -31,6 +37,23 @@ class LottoApplicationTests {
         clientService = new ClientService();
         String filePath = "./src/test/entries_sample.csv";
         csvInputPath = Path.of(filePath);
+// create test clients and winning number
+        int[]
+                arr1 = {1,2,2,4,5,5},
+                arr2 = {1,10,3,4,5,6},
+                arr3 = {3,20,10,44,34,6},
+                arr4 = {6,23,15,2,45,3},
+                arr5 = {3,4,1,2,5,6};
+        Client c1 = new Client("c1",arr1),
+                c2 = new Client("c2",arr2),
+                c3 = new Client("c3",arr3),
+                c4 = new Client("c4",arr4),
+                c5 = new Client("c5",arr5);
+        clients.addAll(List.of(c1,c2,c3,c4,c5));
+        int[] win1 = {1,2,3,4,5,6};
+        WinningNumber winning = new WinningNumber();
+        winning.setPicks(win1);
+        winnings.add(winning);
     }
 
     @Test
@@ -40,7 +63,7 @@ class LottoApplicationTests {
     @ParameterizedTest
     @MethodSource("clients")
     @DisplayName("Test Client Class Constructor")
-    public void ClientCtorTest(String name, int[] picks) {
+    public void clientCtorTest(String name, int[] picks) {
         Client client = null;
         try {
             client = new Client(name, picks);
@@ -62,31 +85,20 @@ class LottoApplicationTests {
     @ParameterizedTest
     @MethodSource("clientsAndWinnings")
     public void checkPrizeTest(Client client, WinningNumber winning, Prize prize){
-        assertEquals(prize,adminService.checkPrize(client,winning));
+        assertEquals(prize,adminService.checkPrizeTest(client,winning));
     }
     private static Arguments[] clientsAndWinnings() {
-        int[]
-                arr1 = {1,2,2,4,5,5},
-                arr2 = {1,10,3,4,5,6},
-                arr3 = {3,20,10,44,34,6},
-                arr4 = {6,23,15,2,45,3};
-        Client c1 = new Client("c1",arr1),
-                c2 = new Client("c2",arr2),
-                c3 = new Client("c3",arr3),
-                c4 = new Client("c4",arr4);
-        int[] win1 = {1,2,3,4,5,6};
-        WinningNumber winning = new WinningNumber();
-        winning.setPicks(win1);
         return new Arguments[]{
-                Arguments.of(c1,winning,Prize.SECOND),
-                Arguments.of(c2,winning,Prize.FIRST),
-                Arguments.of(c3,winning,Prize.NONE),
-                Arguments.of(c4,winning,Prize.THIRD)
+                Arguments.of(clients.get(0),winnings.get(0),Prize.SECOND),
+                Arguments.of(clients.get(1),winnings.get(0),Prize.FIRST),
+                Arguments.of(clients.get(2),winnings.get(0),Prize.NONE),
+                Arguments.of(clients.get(3),winnings.get(0),Prize.THIRD),
+                Arguments.of(clients.get(4),winnings.get(0),Prize.GRAND)
         };
     }
 
     @Test
-    public void ParseCsvTest() throws IOException {
+    public void parseCsvTest() throws IOException {
         Reader r = new FileReader(
                 new File(csvInputPath.toUri())
         );
@@ -101,5 +113,21 @@ class LottoApplicationTests {
         int result = clientService.parseCsvTest(sb.toString());
 
         assertEquals(5,result);
+    }
+
+    @Test
+    public void getWinnersFor1PicksTest(){
+        WinningNumber wn = winnings.get(0);
+        var result = adminService.getWinnersFor1PicksTest(wn,clients);
+        System.out.println("Winning picks are: " + wn.getPicksString());
+        System.out.println("Winners are:");
+        for(var cpe : result.getValue().entrySet()){
+            System.out.printf(
+                    "\t%s with %s\n",
+                    cpe.getKey(),cpe.getValue()
+            );
+        }
+
+        assertEquals(4,result.getValue().size());
     }
 }
