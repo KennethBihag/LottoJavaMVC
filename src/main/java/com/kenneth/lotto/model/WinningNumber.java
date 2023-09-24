@@ -18,10 +18,18 @@ public class WinningNumber implements LottoModel{
 
     @Column(name = "winning_number_prize")
     private int prizePool;
+
+    public WinningNumber(){}
+    public WinningNumber(int prizePool,int[] picks){
+        this.prizePool = prizePool;
+        this.picks = picks;
+    }
+
     @Override
     public boolean equals(Object o){
         return id == ((WinningNumber)o).id;
     }
+
     @Override
     public int getId() {
         return id;
@@ -41,6 +49,7 @@ public class WinningNumber implements LottoModel{
     public void setPicks(int[] picks) {
         this.picks = picks;
     }
+
     public int getPrizePool(){ return prizePool;};
     public void setPrizePool(int prizePool){this.prizePool = prizePool;}
 }

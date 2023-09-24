@@ -2,21 +2,29 @@ package com.kenneth.lotto.service;
 
 import java.util.*;
 
-import jakarta.persistence.Query;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.kenneth.lotto.model.*;
-import static com.kenneth.lotto.repository.LottoRepo.*;
+import com.kenneth.lotto.repository.LottoRepo;
 
 @Service
 public class AdminService implements LottoService {
-    private Collection<WinningNumber> winningNumbers;
+    @Autowired
+    LottoRepo repos;
+
     @Override
-    public List<WinningNumber> getLottoModels() {
-        Query query = em.createQuery(
-                "SELECT wn FROM WinningNumber wn",WinningNumber.class);
-        return (List<WinningNumber>)query.getResultList();
+    public List<WinningNumber> getAll() {
+        return (List<WinningNumber>)repos.getAllObjects(WinningNumber.class);
     }
+
+    public boolean setPrize(int prizePool){
+        WinningNumber wn = new WinningNumber();
+        int[] picks = new int[LottoModel.maxPicks];
+        randomize(picks,0);
+        return repos.createOne(WinningNumber.class,prizePool,picks);
+    }
+
     public Prize checkPrize(Client client,WinningNumber winningNumber){
         int[] arr1 = client.getPicks();
         int[] arr2 = winningNumber.getPicks();

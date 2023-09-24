@@ -13,11 +13,12 @@ public interface LottoService {
             this.n = n;
         }
     }
-    List<? extends LottoModel> getLottoModels();
+
     default void randomize(int[] input,int start){
         for (int i=start; i < input.length; ++i) {
             Random random = new Random();
             input[i] = random.nextInt(45) + 1;
         }
     }
+    List<? extends LottoModel> getAll();
 }

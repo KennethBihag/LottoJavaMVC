@@ -2,126 +2,91 @@ package com.kenneth.lotto.service;
 
 import java.io.*;
 import java.util.*;
+import java.util.AbstractMap.*;
 
-import jakarta.persistence.NoResultException;
-import jakarta.persistence.Query;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.kenneth.lotto.model.*;
-import static com.kenneth.lotto.repository.LottoRepo.*;
+import com.kenneth.lotto.repository.LottoRepo;
 
 @Service
 public class ClientService implements LottoService {
     private static final int fileSize = 1024;
-    private static final Map<String, int[]> entries = new HashMap<>();
-    public ClientService() {
+    private final Map<String,int[]> entries = new HashMap<>();
+    @Autowired
+    private LottoRepo repos;
+    public ClientService() {}
+
+    @Override
+    public List<Client> getAll(){
+        return (List<Client>)repos.getAllObjects(Client.class);
     }
 
-    private int[] toIntArray(String[] tokens) {
-        if (tokens.length != LottoModel.maxPicks)
-            return null;
-        int[] result = new int[LottoModel.maxPicks];
-        boolean randomize = false;
-        int i = 0;
-        for (; i < tokens.length; ++i) {
-            if (!tokens[i].equals("LP")) {
-                try {
-                    result[i] = Integer.parseInt(tokens[i]);
-                } catch (NumberFormatException ex) {
-                    return null;
-                }
-            } else {
-                randomize = true;
-                break;
+    public int updateEntriesFromFile(String fileUri) {
+        StringBuilder sb = new StringBuilder();
+        try (Reader r = new FileReader(fileUri)) {
+            final int lineLength = 64;
+            char[] buffer = new char[lineLength];
+            int read;
+            while( (read=r.read(buffer)) > 0){
+                sb.append(
+                        String.valueOf(buffer,0,read));
             }
+        } catch (IOException iox) {
+            System.err.println(iox.getMessage());
+            return -1;
         }
-        if (randomize)
-            randomize(result,i);
+        return updateEntriesFromString(sb.toString());
+    }
+    public int updateEntriesFromString(String csvInput) {
+        parseCsv(csvInput);
+        int result = repos.createModels(entries,Client.class);
         return result;
     }
-
-    private char[] getCharsFromStream(InputStream inStream) throws IOException {
-        InputStreamReader br = new InputStreamReader(inStream);
-        char[] buffer = new char[fileSize];
-        int offset = 0;
-        do {
-            int chars = br.read(buffer, offset, fileSize);
-            boolean hasMore = chars != -1;
-            if (hasMore) {
-                char[] temp = Arrays.copyOf(buffer, buffer.length * 2);
-                buffer = temp;
-                offset += chars;
-            } else break;
-        } while (true);
-        return buffer;
+    public int parseCsvTest(String csvInput){
+        return parseCsv(csvInput);
     }
-
-    public void validateInput(String csvInput) {
+    private int parseCsv(String csvInput) {
+        int result=0;
         String[] lines = csvInput.split(System.lineSeparator());
         for (int i = 0; i < lines.length; ++i) {
-            String[] tokens = lines[i].split(",", -1);
-            if (tokens.length < 7)
-                if (!tokens[tokens.length - 1].equals("LP"))
-                    continue;
-            String name = tokens[0];
-            if (entries.containsKey(name))
-                continue;
-            int[] values = toIntArray(Arrays.copyOfRange(
-                    tokens, 1, tokens.length));
-            if (values == null)
-                continue;
-            entries.put(name, values);
-        }
-    }
-
-    public boolean updateEntriesFromString(String csvInput) {
-        boolean result = false;
-        em.getTransaction().begin();
-        validateInput(csvInput);
-        Collection<String> toRemove = new ArrayList<>();
-        Iterator<Map.Entry<String, int[]>> itr = entries.entrySet().iterator();
-        while (itr.hasNext()) {
-            var e = itr.next();
-            try {
-                Client client = new Client(e.getKey(),e.getValue());
-                String jpql = String.format(
-                        "SELECT c FROM Client c WHERE c.name = '%s'",
-                        e.getKey());
-                Query query = em.createQuery(jpql, Client.class);
-                Client found = null;
-                try{
-                    found = (Client)query.getSingleResult();
-                }catch (NoResultException ignored){}
-                if (found == null) {
-                    result = true;
-                    em.persist(client);
-                }
-            } catch (IllegalArgumentException ignored) {
-                itr.remove();
+            Map.Entry<String,int[]> entry = getEntryFromString(lines[i]);
+            if(entry != null){
+                entries.put(entry.getKey(),entry.getValue());
+                result++;
             }
         }
-        em.getTransaction().commit();
         return result;
     }
-
-    public boolean updateEntriesFromFile(String fileUri) {
-        char[] buffer = null;
-        boolean result = false;
+    private Map.Entry<String,int[]> getEntryFromString(String entryStr){
+        String[] tokens = entryStr.split(",",0);
+        boolean willRandomize=false;
+        if(tokens[tokens.length-1].equals("LP"))
+            willRandomize=true;
+        if (tokens.length < LottoModel.maxPicks+1 & !willRandomize) {
+            return null;
+        } else if(tokens.length > LottoModel.maxPicks+1)
+            return null;
+        String name = tokens[0];
+        name = name.trim();
+        if(name.isBlank() || entries.containsKey(name))
+            return null;
+        int start = 0;
+        int stop = LottoModel.maxPicks-1;
+        if(willRandomize)
+            stop = tokens.length-3;
+        int[] array = new int[LottoModel.maxPicks];
         try {
-            InputStream fis = new FileInputStream(fileUri);
-            buffer = getCharsFromStream(fis);
-        } catch (IOException ignored) {
-        } finally {
-            if (buffer != null) {
-                result = updateEntriesFromString(String.valueOf(buffer));
-            }
+            for (; start <= stop; ++start)
+                array[start] = Integer.parseInt(tokens[start + 1]);
+        }catch (NumberFormatException nfx){
+            System.err.println(entryStr);
+            System.err.println("Entry value is not a number");
+            return null;
         }
-        return result;
-    }
-    @Override
-    public List<Client> getLottoModels(){
-        String jpql = "SELECT c FROM Client c";
-        Query query = em.createQuery(jpql, Client.class);
-        return (List<Client>)query.getResultList();
+        if(willRandomize)
+            randomize(array,start);
+        return new SimpleEntry<>(name,array);
     }
 }

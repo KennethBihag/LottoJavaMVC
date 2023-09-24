@@ -9,7 +9,7 @@
 ## Tomcat testing
 - Client API
   - URL: http://localhost:8080/lotto/client?entries=<local path of csv>
-    - example: http://localhost:8080/lotto/client?entris=C:/Users/Downloads/file.csv
+    - example: http://localhost:8080/lotto/client?entries=C:/Users/Downloads/file.csv
   - if no entries set, use "body" as "raw text" and input csv lines
     - example: http://localhost:8080/lotto/client
     - body:
