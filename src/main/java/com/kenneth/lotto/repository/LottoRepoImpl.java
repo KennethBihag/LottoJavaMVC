@@ -152,6 +152,7 @@ public class LottoRepoImpl implements LottoRepo{
             clientCache.add(client);
             return client;
         }catch (Exception e){
+            System.err.println(e.getMessage());
             return null;
         }
     }

@@ -39,7 +39,7 @@ class LottoApplicationTests {
         csvInputPath = Path.of(filePath);
 // create test clients and winning number
         int[]
-                arr1 = {1,2,2,4,5,5},
+                arr1 = {1,20,2,4,45,5},
                 arr2 = {1,10,3,4,5,6},
                 arr3 = {3,20,10,44,34,6},
                 arr4 = {6,23,15,2,45,3},

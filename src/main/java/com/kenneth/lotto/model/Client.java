@@ -23,6 +23,8 @@ public class Client implements LottoModel {
 
     public Client(){}
     public Client(String name,int[] picks) throws IllegalArgumentException{
+        this.name = name;
+        this.picks = picks;
         if(picks == null || picks.length != maxPicks)
             throw new IllegalArgumentException(
                     String.format("Picks must only be of %d numbers.",maxPicks));
@@ -31,10 +33,12 @@ public class Client implements LottoModel {
         if(invalidPicks)
             throw new IllegalArgumentException(
                     String.format("Picks must be in the range of %d-%d only.",minPick,maxPick));
+        if(hasDuplicates())
+            throw new IllegalArgumentException(
+                    String.format("%s has duplicates.",getPicksString())
+            );
         if(name.isBlank())
             throw new IllegalArgumentException("Client name can't be empty.");
-        this.name = name;
-        this.picks = picks;
     }
 
     @Override
@@ -76,5 +80,12 @@ public class Client implements LottoModel {
     @Override
     public void setPicks(int[] picks) {
         this.picks = picks;
+    }
+    private boolean hasDuplicates(){
+        for(int i=0; i< picks.length-1; ++i)
+            for(int j=i+1; j<picks.length;++j)
+                if(picks[i]==picks[j])
+                    return true;
+        return false;
     }
 }
