@@ -2,12 +2,12 @@ package com.kenneth.lotto.service;
 
 import java.util.*;
 
-import com.kenneth.lotto.repository.LottoRepoImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.kenneth.lotto.model.*;
 import com.kenneth.lotto.repository.LottoRepo;
+import com.kenneth.lotto.repository.LottoRepoImpl;
 
 @Service
 public class AdminService implements LottoService {
@@ -20,10 +20,8 @@ public class AdminService implements LottoService {
     }
 
     public boolean setPrize(int prizePool){
-        WinningNumber wn = new WinningNumber();
-        //int[] picks = new int[LottoModel.maxPicks];
-        //randomize(picks,0);
-        int[] picks = {1,2,3,4,5,6};
+        int[] picks = new int[LottoModel.maxPicks];
+        randomize(picks,0);
         return repos.createOne(WinningNumber.class,prizePool,picks);
     }
     public Prize checkPrizeTest(Client client, WinningNumber winning){

@@ -3,7 +3,6 @@ package com.kenneth.lotto.repository;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.kenneth.lotto.service.LottoService;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.Query;
 import org.springframework.stereotype.Repository;
@@ -159,6 +158,9 @@ public class LottoRepoImpl implements LottoRepo{
     private WinningNumber createWinningNumber(int prizePool,int[] picks){
         WinningNumber wn = new WinningNumber(prizePool,picks);
         AtomicInteger sharedPrize = new AtomicInteger(0);
+
+        if(clientCache.isEmpty())
+            getAllObjects(Client.class);
         Map.Entry<WinningNumber,Map<Client, Prize>> winners =
                 getWinnersFor1Picks(wn,clientCache,sharedPrize);
         List<Winner> tempWinners = new ArrayList<>();
@@ -176,8 +178,11 @@ public class LottoRepoImpl implements LottoRepo{
         try{
             et.begin();
             em.persist(wn);
-            et.commit();
             winningCache.add((WinningNumber) wn);
+            for(Winner w : tempWinners) {
+                em.persist(w);
+            }
+            et.commit();
             winnerCache.addAll(tempWinners);
             return wn;
         }catch(Exception ignored){}

@@ -5,19 +5,22 @@ import java.util.*;
 import jakarta.persistence.*;
 
 @Entity
-@Table
+@Table(name="client")
 public class Client implements LottoModel {
     private static final int minPick = 1, maxPick = 45;
+
     @Id
-    @Column(name="client_picks_id")
+    @Column(name="client_pick_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
     @Column(name="client_name",columnDefinition = "VARCHAR(45)")
     private String name;
+
     @Column(name = "client_picks",columnDefinition = "VARCHAR(45)")
     @Convert(converter =  IntArrToJsonConverter.class)
     private int[] picks;
+
     public Client(){}
     public Client(String name,int[] picks) throws IllegalArgumentException{
         if(picks == null || picks.length != maxPicks)
@@ -33,10 +36,12 @@ public class Client implements LottoModel {
         this.name = name;
         this.picks = picks;
     }
+
     @Override
     public boolean equals(Object o){
         return id == ((Client)o).id;
     }
+
     @Override
     public String toString(){
         return String.format(
