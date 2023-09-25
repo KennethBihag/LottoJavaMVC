@@ -6,17 +6,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.kenneth.lotto.model.*;
-import com.kenneth.lotto.repository.LottoRepo;
 import com.kenneth.lotto.repository.LottoRepoImpl;
 
 @Service
 public class AdminService implements LottoService {
     @Autowired
-    LottoRepo repos;
+    LottoRepoImpl repos;
 
-    @Override
-    public List<WinningNumber> getAll() {
-        return (List<WinningNumber>)repos.getAllObjects(WinningNumber.class);
+    public List<?> getAll(Class<?> modelClass) {
+        return repos.getAllObjects(modelClass);
     }
 
     public boolean setPrize(int prizePool){

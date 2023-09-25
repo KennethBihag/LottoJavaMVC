@@ -17,11 +17,6 @@ public class ClientService implements LottoService {
     private LottoRepo repos;
     public ClientService() {}
 
-    @Override
-    public List<Client> getAll(){
-        return (List<Client>)repos.getAllObjects(Client.class);
-    }
-
     public int updateEntriesFromFile(String fileUri) {
         StringBuilder sb = new StringBuilder();
         try (Reader r = new FileReader(fileUri)) {

@@ -3,7 +3,6 @@ package com.kenneth.lotto.repository;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import jakarta.persistence.NoResultException;
 import jakarta.persistence.Query;
 import org.springframework.stereotype.Repository;
 
@@ -26,6 +25,7 @@ public class LottoRepoImpl implements LottoRepo{
             return winnerCache;
         else return null;
     }
+
     private List<?> getAllFromDB(Class<?> modelClass){
         String modelName = modelClass.getSimpleName();
         String jpql = String.format("SELECT m FROM %s m",modelName);
@@ -56,7 +56,6 @@ public class LottoRepoImpl implements LottoRepo{
         }
         return false;
     }
-
 
     @Override
     public int createClients(Map<String,List<int[]>> entryData) {

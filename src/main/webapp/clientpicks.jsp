@@ -6,6 +6,7 @@
 <html>
 <head>
     <title>All Entries</title>
+    <link type="text/css" href="../styles.css" rel="stylesheet" />
 </head>
 <body>
     <table>
@@ -22,7 +23,7 @@
             List<Client> allEntries =
                     (List<Client>)request.getAttribute("allEntries");
             for(Client c : allEntries){
-                String row = String.format("<tr><td>%s</td><td>%d</td><td>%s</td></tr>",
+                String row = String.format("<tr><td id='name'>%s</td><td>%d</td><td>%s</td></tr>",
                         c.getName(),
                         c.getId(),
                         c.getPicksString());

@@ -1,11 +1,10 @@
-
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="java.lang.*,com.kenneth.lotto.model.*,java.util.*" %>
-<%@ page import="java.util.Collection" %>
-<%@ page import="java.util.Collections" %>
+
 <html>
 <head>
     <title>Winning Numbers</title>
+    <link type="text/css" href="../styles.css" rel="stylesheet" />
 </head>
 <body>
     <table>

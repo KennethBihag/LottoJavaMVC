@@ -2,7 +2,8 @@ package com.kenneth.lotto.controller;
 
 import java.util.List;
 
-import ch.qos.logback.core.status.Status;
+import com.kenneth.lotto.model.Client;
+import com.kenneth.lotto.model.Winner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,16 +24,41 @@ public class AdminController implements LottoController{
     private AdminService adminService;
 
     @PostMapping
-    public ResponseEntity<String> setPrize(@RequestParam int prizePool){
-        return adminService.setPrize(prizePool) ? ResponseEntity.ok().body("OKAY")
-                : ResponseEntity.status(HttpStatus.NOT_FOUND).body("FAILED");
+    public ResponseEntity<List<Winner>> setPrize(@RequestParam int prizePool){
+        boolean success = adminService.setPrize(prizePool);
+        if(success){
+            var result = adminService.getAll(Winner.class);
+            return ResponseEntity.ok((List<Winner>)result);
+        }else{
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
     }
 
-    @Override
-    @GetMapping
-    public String getAll(Model model) {
-        List<WinningNumber> allWins = adminService.getAll();
-        model.addAttribute("allWins",allWins);
-        return "forward:winnings.jsp";
+    @GetMapping("/models")
+    public String getAll(@RequestParam String modelType, Model model) {
+        String jspPath = null;
+
+        switch(modelType){
+            case "entries":
+                var allEntries =
+                        (List<Client>)adminService.getAll(Client.class);
+                model.addAttribute("allEntries",allEntries);
+                jspPath = "forward:../clientpicks.jsp";
+                break;
+            case "winningnumbers":
+                var allWins =
+                        (List<WinningNumber>)adminService.getAll(WinningNumber.class);
+                model.addAttribute("allWins",allWins);
+                jspPath = "forward:../winnings.jsp";
+                break;
+            case "winners":
+                var allWinners =
+                        (List<Winner>)adminService.getAll(Winner.class);
+                model.addAttribute("allWinners",allWinners);
+                jspPath = "forward:../winners.jsp";
+                break;
+        }
+
+        return jspPath;
     }
 }

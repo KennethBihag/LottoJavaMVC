@@ -1,17 +1,11 @@
 package com.kenneth.lotto.controller;
 
-import java.util.*;
-
-import ch.qos.logback.core.status.Status;
 import com.kenneth.lotto.service.ClientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-
-import com.kenneth.lotto.model.Client;
 
 @Controller
 @RequestMapping("/client")
@@ -45,13 +39,5 @@ public class ClientController implements LottoController {
                 "Failed to update. Either no new entries or invalid entries."
         );
         else return ResponseEntity.ok("Succesfuly updated "+updated+" entries");
-    }
-
-    @Override
-    @GetMapping
-    public String getAll(Model model){
-        List<Client> allEntries = clientService.getAll();
-        model.addAttribute("allEntries",allEntries);
-        return "forward:clientpicks.jsp";
     }
 }
