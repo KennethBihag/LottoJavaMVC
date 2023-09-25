@@ -12,8 +12,7 @@ import com.kenneth.lotto.repository.LottoRepo;
 
 @Service
 public class ClientService implements LottoService {
-    private static final int fileSize = 1024;
-    private final Map<String,int[]> entries = new HashMap<>();
+    private final Map<String,List<int[]>> entries = new HashMap<>();
     @Autowired
     private LottoRepo repos;
     public ClientService() {}
@@ -41,7 +40,8 @@ public class ClientService implements LottoService {
     }
     public int updateEntriesFromString(String csvInput) {
         parseCsv(csvInput);
-        int result = repos.createModels(entries,Client.class);
+        int result =  repos.createClients(entries);
+        entries.clear();
         return result;
     }
     public int parseCsvTest(String csvInput){
@@ -53,7 +53,14 @@ public class ClientService implements LottoService {
         for (int i = 0; i < lines.length; ++i) {
             Map.Entry<String,int[]> entry = getEntryFromString(lines[i]);
             if(entry != null){
-                entries.put(entry.getKey(),entry.getValue());
+                String newName = entry.getKey();
+                if(entries.containsKey(newName))
+                    entries.get(newName).add(entry.getValue());
+                else{
+                    List<int[]> newEntries = new LinkedList<>();
+                    entries.put(newName, newEntries);
+                    newEntries.add(entry.getValue());
+                }
                 result++;
             }
         }
@@ -70,7 +77,7 @@ public class ClientService implements LottoService {
             return null;
         String name = tokens[0];
         name = name.trim();
-        if(name.isBlank() || entries.containsKey(name))
+        if(name.isBlank())
             return null;
         int start = 0;
         int stop = LottoModel.maxPicks-1;
@@ -86,7 +93,18 @@ public class ClientService implements LottoService {
             return null;
         }
         if(willRandomize)
-            randomize(array,start);
+            LottoModel.randomize(array, start);
+        if(isRepeated(name,array))
+            return null;
         return new SimpleEntry<>(name,array);
+    }
+    private boolean isRepeated(String name, int[] picks){
+        for(var e : entries.entrySet()){
+            for(var i : e.getValue()){
+                if(e.getKey().equals(name) & LottoRepo.areSameArrays(i,picks))
+                    return true;
+            }
+        }
+        return false;
     }
 }

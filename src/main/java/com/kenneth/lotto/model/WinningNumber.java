@@ -1,7 +1,5 @@
 package com.kenneth.lotto.model;
 
-import java.util.Arrays;
-
 import jakarta.persistence.*;
 
 @Entity
@@ -19,37 +17,43 @@ public class WinningNumber implements LottoModel{
     @Column(name = "winning_number_prize")
     private int prizePool;
 
-    public WinningNumber(){}
-    public WinningNumber(int prizePool,int[] picks){
+    public WinningNumber(){
+    }
+
+    public WinningNumber(int prizePool){
+        getRandomValues();
         this.prizePool = prizePool;
-        this.picks = picks;
     }
 
-    @Override
-    public boolean equals(Object o){
-        return id == ((WinningNumber)o).id;
+    private void getRandomValues(){
+        picks = new int[LottoModel.maxPicks];
+        do {
+            LottoModel.randomize(picks, 0);
+        } while(hasDuplicates());
     }
 
-    @Override
     public int getId() {
         return id;
     }
 
-    @Override
     public void setId(int id) {
         this.id = id;
     }
 
     @Override
     public int[] getPicks() {
-        return Arrays.copyOf(picks,picks.length);
+        return picks;
     }
 
-    @Override
     public void setPicks(int[] picks) {
         this.picks = picks;
     }
 
     public int getPrizePool(){ return prizePool;};
     public void setPrizePool(int prizePool){this.prizePool = prizePool;}
+
+    @Override
+    public boolean equals(Object o){
+        return id == ((WinningNumber)o).id;
+    }
 }

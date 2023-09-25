@@ -55,4 +55,9 @@ public class Winner{
     public void setPrize(int prize) {
         this.prize = prize;
     }
+
+    @Override
+    public boolean equals(Object o){
+        return id == ((Winner)o).id;
+    }
 }

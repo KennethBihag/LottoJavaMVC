@@ -20,9 +20,7 @@ public class AdminService implements LottoService {
     }
 
     public boolean setPrize(int prizePool){
-        int[] picks = new int[LottoModel.maxPicks];
-        randomize(picks,0);
-        return repos.createOne(WinningNumber.class,prizePool,picks);
+        return repos.createWinningNumber(prizePool);
     }
     public Prize checkPrizeTest(Client client, WinningNumber winning){
         repos = new LottoRepoImpl();

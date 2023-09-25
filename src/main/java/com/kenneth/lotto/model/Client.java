@@ -7,8 +7,6 @@ import jakarta.persistence.*;
 @Entity
 @Table(name="client")
 public class Client implements LottoModel {
-    private static final int minPick = 1, maxPick = 45;
-
     @Id
     @Column(name="client_pick_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,42 +22,28 @@ public class Client implements LottoModel {
     public Client(){}
     public Client(String name,int[] picks) throws IllegalArgumentException{
         this.name = name;
-        this.picks = picks;
         if(picks == null || picks.length != maxPicks)
             throw new IllegalArgumentException(
                     String.format("Picks must only be of %d numbers.",maxPicks));
-        boolean invalidPicks = Arrays.stream(picks).asLongStream().anyMatch(
-                pick -> (pick<minPick || pick>maxPick));
-        if(invalidPicks)
-            throw new IllegalArgumentException(
+
+        if(Arrays.stream(picks).asLongStream().anyMatch(pick ->
+            (pick<minPick || pick>maxPick)))
+                throw new IllegalArgumentException(
                     String.format("Picks must be in the range of %d-%d only.",minPick,maxPick));
+
+        this.picks = picks;
         if(hasDuplicates())
             throw new IllegalArgumentException(
-                    String.format("%s has duplicates.",getPicksString())
-            );
+                    String.format("%s has duplicates.",getPicksString()));
+
         if(name.isBlank())
             throw new IllegalArgumentException("Client name can't be empty.");
     }
 
-    @Override
-    public boolean equals(Object o){
-        return id == ((Client)o).id;
-    }
-
-    @Override
-    public String toString(){
-        return String.format(
-                "%s with ID %d picked %s",
-                name,id,getPicksString()
-        );
-    }
-
-    @Override
     public int getId() {
         return id;
     }
 
-    @Override
     public void setId(int id) {
         this.id = id;
     }
@@ -74,18 +58,23 @@ public class Client implements LottoModel {
 
     @Override
     public int[] getPicks() {
-        return Arrays.copyOf(picks,maxPicks);
+        return picks;
     }
 
-    @Override
     public void setPicks(int[] picks) {
         this.picks = picks;
     }
-    private boolean hasDuplicates(){
-        for(int i=0; i< picks.length-1; ++i)
-            for(int j=i+1; j<picks.length;++j)
-                if(picks[i]==picks[j])
-                    return true;
-        return false;
+
+    @Override
+    public boolean equals(Object o){
+        return id == ((Client)o).id;
+    }
+
+    @Override
+    public String toString(){
+        return String.format(
+                "%s with ID %d picked %s",
+                name,id,getPicksString()
+        );
     }
 }

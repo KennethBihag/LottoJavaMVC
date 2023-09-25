@@ -12,137 +12,70 @@ import com.kenneth.lotto.service.LottoService.Prize;
 
 @Repository
 public class LottoRepoImpl implements LottoRepo{
-    private final List<Client> clientCache = new ArrayList<>();
-    private final List<WinningNumber> winningCache = new ArrayList<>();
-    private final List<Winner> winnerCache = new ArrayList<>();
+    private final List<Client> clientCache = (List<Client>)getAllFromDB(Client.class);
+    private final List<WinningNumber> winningCache = (List<WinningNumber>)getAllFromDB(WinningNumber.class);
+    private final List<Winner> winnerCache = (List<Winner>)getAllFromDB(Winner.class);
 
     @Override
-    public List<? extends LottoModel> getAllObjects(Class<? extends LottoModel> modelClass){
-        if(modelClass == Client.class) {
-            if(clientCache.size()<1) {
-                List<Client> clientsFromDb = (List<Client>) getAllFromDB(Client.class);
-                clientCache.addAll(clientsFromDb);
-            }
+    public List<?> getAllObjects(Class<?> modelClass){
+        if(modelClass == Client.class)
             return clientCache;
-        }
-        else if (modelClass == WinningNumber.class) {
-            if (winningCache.size() < 1) {
-                List<WinningNumber> winningsFromDb = (List<WinningNumber>) getAllFromDB(WinningNumber.class);
-                winningCache.addAll(winningsFromDb);
-            }
+        else if (modelClass == WinningNumber.class)
             return winningCache;
-        }
-        return null;
+        else if (modelClass == Winner.class)
+            return winnerCache;
+        else return null;
     }
-    private List<? extends LottoModel> getAllFromDB(Class<? extends LottoModel> modelClass){
+    private List<?> getAllFromDB(Class<?> modelClass){
         String modelName = modelClass.getSimpleName();
         String jpql = String.format("SELECT m FROM %s m",modelName);
         Query query = em.createQuery(jpql, modelClass);
         return query.getResultList();
     }
 
-    @Override
-    public LottoModel getOne(Class<? extends LottoModel> modelClass,String key){
-        LottoModel result = null;
-        if(modelClass==Client.class){
-            result = getFromCache(Client.class,key);
-            if(result == null){
-                result = getFromDb(Client.class,key);
-                if(result != null)
-                    clientCache.add((Client)result);
-            }
-        }else if (modelClass==WinningNumber.class){
-            result = getFromCache(WinningNumber.class,key);
-            if(result == null) {
-                result = getFromDb(WinningNumber.class, key);
-                if(result != null)
-                    winningCache.add((WinningNumber)result);
-            }
+    private <T> void addToCache(T toAdd){
+        switch (toAdd.getClass().getSimpleName()){
+            case "Client":
+                if(!clientCache.contains(toAdd))
+                    clientCache.add((Client)toAdd);
+                break;
+            case "WinningNumber":
+                if(!winningCache.contains(toAdd))
+                    winningCache.add((WinningNumber) toAdd);
+                break;
+            case "Winner":
+                if(!winnerCache.contains(toAdd))
+                    winnerCache.add((Winner)toAdd);
+                break;
         }
-        return result;
     }
-    private LottoModel getFromCache(Class<? extends LottoModel> classModel,String key){
-        LottoModel result = null;
-        try {
-            if (classModel == Client.class) {
-                result = clientCache.stream()
-                        .filter(c -> c.getName().equals(key))
-                        .findFirst().get();
-            } else if (classModel == WinningNumber.class) {
-                result = winningCache.stream()
-                        .filter(w -> w.getId() == Integer.parseInt(key))
-                        .findFirst().get();
-            }
-        } catch (NoSuchElementException ignored){}
-        return result;
-    }
-    private LottoModel getFromDb(Class<? extends LottoModel> classModel,String key){
-        LottoModel result = null;
-        String jpql = null;
-        Query query = null;
-        try {
-            if (classModel == Client.class) {
-                jpql = String.format("SELECT c FROM Client c WHERE c.name = '%s'", key);
-                query = em.createQuery(jpql, Client.class);
-                result = (Client) query.getSingleResult();
-            } else if (classModel == WinningNumber.class) {
-                int idKey = Integer.parseInt(key);
-                jpql = String.format("SELECT w FROM WinningNumber w WHERE w.id = %d", idKey);
-                query = em.createQuery(jpql, WinningNumber.class);
-                result = (WinningNumber) query.getSingleResult();
-            }
-        } catch (NoResultException ignored){}
-
-        return result;
-    }
-
-    @Override
-    public int createModels(Object data,Class<? extends LottoModel> modelClass) {
-        int result=0;
-        if(modelClass == Client.class){
-            Map<String,int[]> entries = (Map<String, int[]>) data;
-            Iterator itr = entries.entrySet().iterator();
-            while(itr.hasNext()){
-                Map.Entry<String, int[]> e = (Map.Entry<String,int[]>)itr.next();
-                Client found = (Client)getOne(Client.class,e.getKey());
-                if(found != null){
-                    itr.remove();
-                    continue;
-                }
-                Client client = createClient(e.getKey(),e.getValue());
-                if(client != null)
-                    result++;
-            }
-        } else if (modelClass == WinningNumber.class){
-            List<Map.Entry<Integer,int[]>> winnings = (List<Map.Entry<Integer,int[]>>)data;
-        }
-        return result;
-    }
-
-    public boolean createOne(Class<? extends LottoModel> modelClass,Object ... args){
-        LottoModel existing = null;
-        if(modelClass==Client.class){
-            String name = (String) args[0];
-            int[] picks = (int[]) args[1];
-            existing = getFromCache(Client.class,name);
-            if(existing == null) {
-                existing = getFromDb(Client.class, name);
-                if(existing == null){
-                    existing = createClient(name,picks);
-                    if(existing != null)
-                        return true;
-                }else{
-                    clientCache.add((Client) existing);
-                }
-            }
-        }else if (modelClass==WinningNumber.class){
-            int prize = (int)args[0];
-            int[] picks = (int[])args[1];
-            existing = createWinningNumber(prize,picks);
-            if(existing != null) return true;
+    private boolean isEntryCached(String name, int[] entries){
+        for(Client c : clientCache){
+            if(c.getName().equals(name) & LottoRepo.areSameArrays(c.getPicks(),entries))
+                return true;
         }
         return false;
     }
+
+
+    @Override
+    public int createClients(Map<String,List<int[]>> entryData) {
+        int result=0;
+
+        for(var nameAndEntries : entryData.entrySet()){
+            String name = nameAndEntries.getKey();
+            List<int[]> entriesList = nameAndEntries.getValue();
+            for(int[] entries : entriesList){
+                if(!isEntryCached(name,entries)) {
+                    if(createClient(name, entries) != null)
+                        result++;
+                }
+            }
+        }
+
+        return result;
+    }
+
     private Client createClient(String name,int[] picks){
         try {
             Client client = new Client(name, picks);
@@ -156,12 +89,11 @@ public class LottoRepoImpl implements LottoRepo{
             return null;
         }
     }
-    private WinningNumber createWinningNumber(int prizePool,int[] picks){
-        WinningNumber wn = new WinningNumber(prizePool,picks);
-        AtomicInteger sharedPrize = new AtomicInteger(0);
 
-        if(clientCache.isEmpty())
-            getAllObjects(Client.class);
+    @Override
+    public boolean createWinningNumber(int prizePool){
+        WinningNumber wn = new WinningNumber(prizePool);
+        AtomicInteger sharedPrize = new AtomicInteger(0);
         Map.Entry<WinningNumber,Map<Client, Prize>> winners =
                 getWinnersFor1Picks(wn,clientCache,sharedPrize);
         List<Winner> tempWinners = new ArrayList<>();
@@ -172,7 +104,7 @@ public class LottoRepoImpl implements LottoRepo{
                 case SECOND -> 500;
                 case FIRST -> 20000;
                 case GRAND -> sharedPrize.get();
-                default -> -1;
+                default -> throw new RuntimeException("Impossible case: Client must have a prize.");
             };
             tempWinners.add(new Winner(e.getKey(),wn,cPrize));
         }
@@ -185,9 +117,9 @@ public class LottoRepoImpl implements LottoRepo{
             }
             et.commit();
             winnerCache.addAll(tempWinners);
-            return wn;
+            return true;
         }catch(Exception ignored){}
 
-        return null;
+        return false;
     }
 }
