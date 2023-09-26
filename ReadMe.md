@@ -3,7 +3,7 @@
 - define persistenceUnitName=<any name>
 - change persistence-unit name attribute in persistence.xml to be the same as the value set
 - default is "com.kenneth.lotto"
-- set context to "/lotto"
+- set context to "/lotto" and port to 8080 default
 ## Database
 - create lotto_db schema in MySQL prior running
 ## Tomcat testing
@@ -20,3 +20,9 @@
 - Admin API
   - URL: http://localhost:8080/lotto/admin?prizePool=<integer val>
     - example: http://localhost:8080/lotto/admin?prizePool=100000
+  - send a POST request and expect a result of a json array of winners
+  - This can also be accessed via browser by going to home page: ...8080/lotto
+- Admin/models API
+  - URL: http://localhost:8080/lotto/admin/models?modelType=<type of object>
+  - type of object can be: "entries","winningnumbers", or "winners"
+  - example: http://localhost:8080/lotto/admin/models?modelType=winners

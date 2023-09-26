@@ -24,11 +24,12 @@ public class AdminController implements LottoController{
     private AdminService adminService;
 
     @PostMapping
-    public ResponseEntity<List<Winner>> setPrize(@RequestParam int prizePool){
+    public ResponseEntity<List<Winner.WinnerDto>> setPrize(@RequestParam int prizePool){
         boolean success = adminService.setPrize(prizePool);
         if(success){
-            var result = adminService.getAll(Winner.class);
-            return ResponseEntity.ok((List<Winner>)result);
+            var result = (List<Winner>)adminService.getAll(Winner.class);
+            var resultDtos = result.stream().map(w->new Winner.WinnerDto(w)).toList();
+            return ResponseEntity.ok(resultDtos);
         }else{
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
