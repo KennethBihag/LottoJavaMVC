@@ -5,7 +5,7 @@
 <html>
 <head>
     <title>Winning Numbers</title>
-    <link type="text/css" href="../styles.css" rel="stylesheet" />
+    <link type="text/css" href="/styles.css" rel="stylesheet" />
     <%
         List<Winner> allWinners =
                 (List<Winner>)request.getAttribute("allWinners");

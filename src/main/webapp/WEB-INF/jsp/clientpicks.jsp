@@ -6,7 +6,7 @@
 <html>
 <head>
     <title>All Entries</title>
-    <link type="text/css" href="../styles.css" rel="stylesheet" />
+    <link type="text/css" href="/styles.css" rel="stylesheet" />
 </head>
 <body>
     <table>

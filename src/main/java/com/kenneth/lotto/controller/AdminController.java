@@ -44,19 +44,19 @@ public class AdminController implements LottoController{
                 var allEntries =
                         (List<Client>)adminService.getAll(Client.class);
                 model.addAttribute("allEntries",allEntries);
-                jspPath = "forward:../clientpicks.jsp";
+                jspPath = "clientpicks";
                 break;
             case "winningnumbers":
                 var allWins =
                         (List<WinningNumber>)adminService.getAll(WinningNumber.class);
                 model.addAttribute("allWins",allWins);
-                jspPath = "forward:../winnings.jsp";
+                jspPath = "winnings";
                 break;
             case "winners":
                 var allWinners =
                         (List<Winner>)adminService.getAll(Winner.class);
                 model.addAttribute("allWinners",allWinners);
-                jspPath = "forward:../winners.jsp";
+                jspPath = "winners";
                 break;
         }
 
