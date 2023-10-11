@@ -8,10 +8,12 @@ import org.springframework.stereotype.Service;
 import com.kenneth.lotto.model.*;
 import com.kenneth.lotto.repository.LottoRepoImpl;
 
-@Service
 public class AdminService implements LottoService {
-    @Autowired
+
     LottoRepoImpl repos;
+    public void setLottoRepoImpl(LottoRepoImpl r){
+        repos=r;
+    }
 
     public List<?> getAll(Class<?> modelClass) {
         return repos.getAllObjects(modelClass);
