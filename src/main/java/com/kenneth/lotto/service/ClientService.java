@@ -8,14 +8,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.kenneth.lotto.model.*;
-import com.kenneth.lotto.repository.LottoRepo;
+import com.kenneth.lotto.repository.*;
 
 @Service
 public class ClientService implements LottoService {
     private final Map<String,List<int[]>> entries = new HashMap<>();
     @Autowired
-    private LottoRepo repos;
-    public ClientService() {}
+    private LottoRepoImpl repos;
 
     public int updateEntriesFromFile(String fileUri) {
         StringBuilder sb = new StringBuilder();

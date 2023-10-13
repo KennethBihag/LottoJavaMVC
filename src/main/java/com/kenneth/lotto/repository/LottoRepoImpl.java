@@ -2,54 +2,72 @@ package com.kenneth.lotto.repository;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.StreamSupport;
 
-import jakarta.persistence.Query;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.kenneth.lotto.model.*;
 import com.kenneth.lotto.service.LottoService.Prize;
 
 @Repository
-public class LottoRepoImpl implements LottoRepo{
-    private final List<Client> clientCache = (List<Client>)getAllFromDB(Client.class);
-    private final List<WinningNumber> winningCache = (List<WinningNumber>)getAllFromDB(WinningNumber.class);
-    private final List<Winner> winnerCache = (List<Winner>)getAllFromDB(Winner.class);
+@Transactional
+public class LottoRepoImpl implements LottoRepo {
+    @Autowired
+    private ClientRepo clientRepo;
+    @Autowired
+    private WinningNumberRepo winningNumberRepo;
+    @Autowired
+    private WinnerRepo winnerRepo;
+
+    private List<Client> clientCache;
+    private List<WinningNumber> winningCache;
+    private List<Winner> winnerCache;
+    private void readyCache(){
+        if(clientCache==null || winningCache==null || winnerCache==null) {
+            clientCache = (List<Client>) getAllFromDB(Client.class);
+            winningCache = (List<WinningNumber>) getAllFromDB(WinningNumber.class);
+            winnerCache = (List<Winner>) getAllFromDB(Winner.class);
+        }
+    }
 
     @Override
     public List<?> getAllObjects(Class<?> modelClass){
-        if(modelClass == Client.class)
+        readyCache();
+        if(modelClass == Client.class){
             return clientCache;
-        else if (modelClass == WinningNumber.class)
+        }
+        else if (modelClass == WinningNumber.class) {
             return winningCache;
-        else if (modelClass == Winner.class)
+        }
+        else if (modelClass == Winner.class) {
             return winnerCache;
+        }
         else return null;
     }
 
     private List<?> getAllFromDB(Class<?> modelClass){
-        String modelName = modelClass.getSimpleName();
-        String jpql = String.format("SELECT m FROM %s m",modelName);
-        Query query = em.createQuery(jpql, modelClass);
-        return query.getResultList();
-    }
-
-    private <T> void addToCache(T toAdd){
-        switch (toAdd.getClass().getSimpleName()){
+        switch (modelClass.getSimpleName()){
             case "Client":
-                if(!clientCache.contains(toAdd))
-                    clientCache.add((Client)toAdd);
-                break;
+                return new ArrayList<>(StreamSupport
+                        .stream(clientRepo.findAll().spliterator(),false)
+                        .toList());
             case "WinningNumber":
-                if(!winningCache.contains(toAdd))
-                    winningCache.add((WinningNumber) toAdd);
-                break;
+                return new ArrayList<>(StreamSupport
+                        .stream(winningNumberRepo.findAll().spliterator(),false)
+                        .toList());
             case "Winner":
-                if(!winnerCache.contains(toAdd))
-                    winnerCache.add((Winner)toAdd);
-                break;
+                return new ArrayList<>(StreamSupport
+                        .stream(winnerRepo.findAll().spliterator(),false)
+                        .toList());
+            default:
+                return null;
         }
     }
+
     private boolean isEntryCached(String name, int[] entries){
+        readyCache();
         for(Client c : clientCache){
             if(c.getName().equals(name) & LottoRepo.areSameArrays(c.getPicks(),entries))
                 return true;
@@ -59,15 +77,18 @@ public class LottoRepoImpl implements LottoRepo{
 
     @Override
     public int createClients(Map<String,List<int[]>> entryData) {
+        readyCache();
         int result=0;
-
         for(var nameAndEntries : entryData.entrySet()){
             String name = nameAndEntries.getKey();
             List<int[]> entriesList = nameAndEntries.getValue();
             for(int[] entries : entriesList){
                 if(!isEntryCached(name,entries)) {
-                    if(createClient(name, entries) != null)
+                    Client c = createClient(name, entries);
+                    if( c != null ) {
+                        clientCache.add(c);
                         result++;
+                    }
                 }
             }
         }
@@ -78,10 +99,7 @@ public class LottoRepoImpl implements LottoRepo{
     private Client createClient(String name,int[] picks){
         try {
             Client client = new Client(name, picks);
-            et.begin();
-            em.persist(client);
-            et.commit();
-            clientCache.add(client);
+            clientRepo.save(client);
             return client;
         }catch (Exception e){
             System.err.println(e.getMessage());
@@ -93,6 +111,7 @@ public class LottoRepoImpl implements LottoRepo{
     public boolean createWinningNumber(int prizePool){
         WinningNumber wn = new WinningNumber(prizePool);
         AtomicInteger sharedPrize = new AtomicInteger(0);
+        readyCache();
         Map.Entry<WinningNumber,Map<Client, Prize>> winners =
                 getWinnersFor1Picks(wn,clientCache,sharedPrize);
         List<Winner> tempWinners = new ArrayList<>();
@@ -108,13 +127,10 @@ public class LottoRepoImpl implements LottoRepo{
             tempWinners.add(new Winner(e.getKey(),wn,cPrize));
         }
         try{
-            et.begin();
-            em.persist(wn);
-            winningCache.add((WinningNumber) wn);
+            winningCache.add(winningNumberRepo.save(wn));
             for(Winner w : tempWinners) {
-                em.persist(w);
+                winnerRepo.save(w);
             }
-            et.commit();
             winnerCache.addAll(tempWinners);
             return true;
         }catch(Exception ignored){}

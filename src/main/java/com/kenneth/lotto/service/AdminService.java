@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.kenneth.lotto.model.*;
-import com.kenneth.lotto.repository.LottoRepoImpl;
+import com.kenneth.lotto.repository.*;
 
 @Service
 public class AdminService implements LottoService {
@@ -21,7 +21,6 @@ public class AdminService implements LottoService {
         return repos.createWinningNumber(prizePool);
     }
     public Prize checkPrizeTest(Client client, WinningNumber winning){
-        repos = new LottoRepoImpl();
         return repos.checkPrize(client, winning);
     }
     public Map.Entry<WinningNumber,Map<Client, LottoService.Prize>> getWinnersFor1PicksTest(

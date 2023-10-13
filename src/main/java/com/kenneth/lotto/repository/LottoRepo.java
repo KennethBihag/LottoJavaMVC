@@ -3,22 +3,10 @@ package com.kenneth.lotto.repository;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.kenneth.lotto.model.Client;
-import com.kenneth.lotto.model.WinningNumber;
-import jakarta.persistence.*;
-
-import com.kenneth.lotto.model.LottoModel;
+import com.kenneth.lotto.model.*;
 import com.kenneth.lotto.service.LottoService.Prize;
 
 public interface LottoRepo {
-
-    EntityManagerFactory emf = Persistence.createEntityManagerFactory(
-            System.getProperty("persistenceUnitName") == null ?
-                    "com.kenneth.lotto" : System.getProperty("persistenceUnitName")
-    );
-    EntityManager em = emf.createEntityManager();
-    EntityTransaction et = em.getTransaction();
-
     static boolean areSameArrays(int[] a, int[] b){
         for(int i=0; i<LottoModel.maxPicks; ++i)
             if(a[i]!=b[i])
