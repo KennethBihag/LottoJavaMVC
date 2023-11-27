@@ -1,0 +1,4 @@
+{
+	"php.suggest.basic": true,
+	"php.format.rules.alignConsecutiveAssignments": true
+}
